@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route Chat wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --background:#f7f7f2;
+    --foreground:#252620;
+    --muted:#eeeee7;
+    --muted-foreground:#72736b;
+    --faint:#a4a59c;
+    --line:#dededa;
+    --accent:#567b51;
+    --signal:#354f32;
+    --selected:#eff4ec;
+    --selected-line:#b8cfae;
+    --surface:#fcfcf9;
+    --wire:#b6bdb0;
+    --grid:#d8dcd3;
+    --shell:rgba(165,173,159,.22);
+    --cta:#272b21;
+    --cta-border:#171913;
+    --warn:#a6702c;
+    --warn-bg:#f5ecd9;
+    --loss:#a2483f;
+    --font:"Geist",Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  p{margin:0}
+  .num{font-variant-numeric:tabular-nums}
+  svg.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- board ---------- */
+  .board{max-width:1280px;margin:0 auto;padding:32px 20px 96px}
+  .board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+  .board-head h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:-.015em}
+  .board-head p{color:var(--muted-foreground);font-size:13.5px;max-width:560px}
+  .board-nav{display:flex;gap:6px;flex-wrap:wrap}
+  .board-nav a{font-size:12px;color:var(--muted-foreground);padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+  .board-nav a:hover{color:var(--foreground)}
+  .screen{margin:0 0 80px;scroll-margin-top:20px}
+  .screen-label{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin:0 0 14px}
+  .screen-label b{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  .screen-label span{font-size:13.5px;color:var(--muted-foreground)}
+  .notes{margin:16px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 28px}
+  .notes li{font-size:13px;color:var(--muted-foreground);padding-left:24px;position:relative;line-height:1.45}
+  .notes li b{color:var(--foreground);font-weight:500}
+  .notes li i,.mk{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font:600 10.5px/18px var(--font);text-align:center;font-style:normal}
+  .notes li i{position:absolute;left:0;top:0}
+  .mk{position:absolute;z-index:3;box-shadow:0 0 0 3px var(--background)}
+  .rel{position:relative}
+  .sample{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--muted);color:var(--muted-foreground);font-weight:500;letter-spacing:0;text-transform:none}
+
+  /* ---------- principles + flow ---------- */
+  .principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:18px}
+  .principles div{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--surface)}
+  .principles b{display:block;font-size:14px;font-weight:600;margin-bottom:4px;letter-spacing:-.005em}
+  .principles span{font-size:12.5px;color:var(--muted-foreground)}
+  .flow{border:1px solid var(--line);border-radius:14px;background-color:var(--surface);background-image:radial-gradient(var(--grid) 1px,transparent 1.2px);background-size:22px 22px;padding:22px;overflow-x:auto}
+  .flow svg{display:block;width:100%;min-width:900px;height:auto}
+  .flow text{font-family:var(--font)}
+
+  /* ---------- app frame ---------- */
+  .fit{width:100%;overflow:hidden}
+  .app{width:1240px;transform-origin:top left;border:1px solid var(--line);border-radius:14px;background:var(--background);overflow:hidden;box-shadow:0 30px 60px -40px rgba(37,38,32,.28)}
+  .topbar{display:flex;align-items:center;gap:26px;height:66px;padding:0 18px;border-bottom:1px solid var(--line)}
+  .logo{width:36px;height:36px;border-radius:11px;background:var(--cta);display:grid;place-items:center;color:#f7f7f2;flex:none}
+  .logo svg{width:18px;height:18px;stroke-width:3.2}
+  .nav{display:flex;gap:4px;align-items:center}
+  .nav a{font-size:13.5px;color:var(--muted-foreground);padding:7px 11px;border-radius:10px}
+  .nav a.on{color:var(--foreground);background:var(--muted);font-weight:500}
+  .nav a .new{font-size:10px;font-weight:600;color:var(--signal);background:var(--selected);padding:1px 6px;border-radius:999px;margin-left:6px}
+  .wallet{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--selected);color:var(--signal);font-size:13px;font-weight:500}
+  .wallet i{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#9abc87,#354f32)}
+  .wallet.off{background:var(--cta);color:#f7f7f2;padding:8px 14px}
+  .stage{display:grid;grid-template-columns:1fr 760px 1fr;gap:0}
+  .col{border:1px solid var(--line);border-radius:8px;min-width:0;position:relative}
+  .col.side{padding:16px}
+  .ghost-btn{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted-foreground);padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+  .side-stack{display:flex;gap:8px}
+  .chat{display:flex;flex-direction:column;height:100%}
+  .thread{flex:1;display:flex;flex-direction:column;gap:22px;padding:36px 60px 20px;overflow:hidden}
+
+  /* messages */
+  .msg-user{align-self:flex-end;background:var(--muted);padding:11px 16px;border-radius:20px 20px 6px 20px;font-size:15px;max-width:70%}
+  .msg-agent{display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:start}
+  .ava{width:30px;height:30px;border-radius:10px;background:var(--cta);display:grid;place-items:center;color:#f7f7f2}
+  .ava svg{width:14px;height:14px;stroke-width:3.4}
+  .agent-body{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .agent-body > p{font-size:15px;padding-top:4px}
+  .assume{display:flex;gap:8px;flex-wrap:wrap}
+  .as{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;border:1px dashed var(--wire);font-size:12.5px;color:var(--foreground);background:var(--surface)}
+  .as svg{width:12px;height:12px;color:var(--muted-foreground)}
+  .as em{font-style:normal;color:var(--muted-foreground)}
+  .follow{display:flex;gap:8px;flex-wrap:wrap}
+  .follow span{font-size:12.5px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--foreground)}
+
+  /* composer */
+  .composer{margin:0 60px 22px;border-radius:24px;background:var(--surface);box-shadow:0 4px 12px -4px rgba(0,0,0,.05),0 0 0 1px rgba(202,204,197,.7);padding:12px 12px 12px 20px;display:flex;align-items:center;gap:12px}
+  .composer .ph{flex:1;color:var(--faint);font-size:15px}
+  .send{width:38px;height:38px;border-radius:50%;background:var(--cta);display:grid;place-items:center;color:#f7f7f2;flex:none}
+  .send.off{background:var(--muted);color:var(--faint)}
+  .send svg{width:16px;height:16px}
+  .disclaimer{text-align:center;font-size:11.5px;color:var(--faint);margin:-12px 0 14px}
+
+  /* tokens */
+  .ic{border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:700;font-size:10px;flex:none;width:24px;height:24px}
+  .ic svg{width:11px;height:11px;stroke-width:3.4}
+  .ic.route{background:var(--foreground)}
+  .ic.usdg{background:#2f9e5a}
+  .ic.eth{background:#627eea}
+  .ic.pons{background:#d0873a}
+  .ic.ign{background:#b0493e}
+  .ic.cat{background:#7a6bb5}
+  .ic.hook{background:#3c8c9b}
+  .ic.si1{background:#8a8f3a}
+  .ic.si2{background:#c25a8a}
+  .token{display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 5px;border-radius:999px;background:var(--surface);border:1px solid #e3e4db;font-weight:600;font-size:14px;white-space:nowrap}
+  .token svg.chev{width:12px;height:12px;opacity:.55}
+
+  /* swap widget (mirrors route.fun swap card) */
+  .w{background:var(--shell);border:1px solid var(--line);border-radius:26px;padding:8px;display:flex;flex-direction:column;gap:6px;max-width:470px}
+  .w-top{display:flex;justify-content:space-between;align-items:center;padding:4px 6px 2px}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--foreground)}
+  .pill.mut{background:transparent;color:var(--muted-foreground)}
+  .pane{background:var(--background);border-radius:20px;padding:13px 14px;box-shadow:0 0 0 1px rgba(202,204,197,.58)}
+  .pane.get{background:rgba(228,229,224,.45);box-shadow:none;border:1px solid rgba(0,0,0,.07)}
+  .pane label{font-size:13px;color:#717267}
+  .amt{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 4px}
+  .amt .v{font-size:36px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+  .amt .v.ph{color:var(--faint)}
+  .amt .v.focus{border-right:2px solid var(--accent);padding-right:4px}
+  .pane .row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted-foreground)}
+  .flip{width:34px;height:34px;border-radius:12px;background:var(--surface);border:3px solid #e9eae3;display:grid;place-items:center;margin:-17px auto;position:relative;z-index:1;color:var(--muted-foreground)}
+  .details{display:flex;flex-direction:column;gap:7px;font-size:12.5px;color:var(--muted-foreground);padding:6px 8px 4px}
+  .details div{display:flex;justify-content:space-between;gap:12px}
+  .details b{font-weight:500;color:var(--foreground)}
+  .details .warn b,.details .warn{color:var(--warn)}
+  .cta{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 18px;border-radius:20px;background:var(--cta);color:#f7f7f2;font:500 14.5px/1 var(--font);border:1px solid var(--cta-border);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 3px 0 #000;margin-top:2px}
+  .cta.light{background:#c5d6b5;color:var(--foreground);border-color:#aec39d;box-shadow:0 3px 0 #8fa87c}
+  .cta.dis{background:var(--muted);color:var(--faint);border-color:var(--line);box-shadow:none}
+  .cta.sec{background:var(--surface);color:var(--foreground);border-color:#dcdcd4;box-shadow:0 0 0 1px rgba(202,204,197,.35)}
+  .cta svg{width:14px;height:14px}
+  .tiny{font-size:11.5px;color:var(--faint);display:flex;align-items:center;gap:6px}
+  .tiny .ring{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent)}
+
+  /* research card */
+  .rcard{border:1px solid var(--line);border-radius:22px;background:var(--surface);max-width:600px}
+  .rhead{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .rhead .ic{width:36px;height:36px}
+  .rhead .ic svg{width:16px;height:16px}
+  .rhead b{font-size:15px;display:block}
+  .rhead small{font-size:12px;color:var(--muted-foreground)}
+  .rhead .px{margin-left:auto;text-align:right}
+  .rhead .px b{font-size:16px;font-weight:500}
+  .tldr{padding:14px 18px;font-size:14.5px;line-height:1.5;border-bottom:1px solid var(--line);background:var(--background)}
+  .facts{display:flex;flex-direction:column}
+  .fact{display:grid;grid-template-columns:110px 1fr auto;gap:14px;align-items:center;padding:11px 18px;border-bottom:1px solid rgba(37,38,32,.06);font-size:13.5px}
+  .fact:last-child{border-bottom:0}
+  .fact .k{color:var(--muted-foreground);font-size:12.5px}
+  .src{font-size:11px;color:var(--muted-foreground);padding:2px 8px;border-radius:6px;background:var(--muted);white-space:nowrap}
+  .flag{display:inline-flex;align-items:center;gap:6px;color:var(--warn);font-weight:500}
+  .flag svg{width:13px;height:13px}
+  .ractions{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line);background:var(--background);border-radius:0 0 22px 22px}
+  .rbtn{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;padding:9px 14px;border-radius:14px;border:1px solid #dcdcd4;background:var(--surface)}
+  .rbtn.pri{background:var(--cta);color:#f7f7f2;border-color:var(--cta-border)}
+  .rbtn svg{width:13px;height:13px}
+
+  /* canvases with loose widgets */
+  .canvas{border:1px solid var(--line);border-radius:14px;background-color:var(--surface);background-image:radial-gradient(var(--grid) 1px,transparent 1.2px);background-size:22px 22px;padding:26px;display:grid;gap:22px}
+  .canvas.c5{grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:18px}
+  .canvas.c3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .canvas.c7{grid-template-columns:1fr 1fr 330px}
+  .canvas.c7 .tall{grid-column:3;grid-row:1/3;justify-content:center}
+  @media (max-width:980px){.canvas.c7{grid-template-columns:1fr}.canvas.c7 .tall{grid-column:auto;grid-row:auto}}
+  .state{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .tag{font-size:12px;color:var(--muted-foreground);display:flex;align-items:center;gap:8px}
+  .tag b{width:20px;height:20px;border-radius:6px;background:var(--foreground);color:var(--background);display:grid;place-items:center;font-size:11px}
+  .tag.go b{background:var(--accent)}
+  .card{background:var(--background);border-radius:22px;padding:14px;box-shadow:0 4px 8px -2px rgba(0,0,0,.03),0 8px 16px -4px rgba(0,0,0,.04),0 0 0 1px rgba(202,204,197,.6);display:flex;flex-direction:column;gap:10px}
+  .card h4{margin:0;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .card h4 small{font-weight:400;color:var(--muted-foreground);font-size:12px}
+  .kv{display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+  .kv div{display:flex;justify-content:space-between;gap:10px;color:var(--muted-foreground)}
+  .kv b{font-weight:500;color:var(--foreground);text-align:right}
+  .wsteps{display:flex;flex-direction:column;gap:10px;font-size:13px}
+  .wsteps div{display:flex;align-items:center;gap:10px}
+  .wsteps .d{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--wire);font-size:11px;font-weight:600;flex:none}
+  .wsteps .d.ok{background:var(--accent);border-color:var(--accent);color:#fff}
+  .wsteps .d.ok svg{width:12px;height:12px}
+  .wsteps .d.run{border:2px solid var(--line);border-top-color:var(--accent)}
+  .wsteps .mut{color:var(--muted-foreground)}
+  .bar{height:6px;border-radius:999px;background:var(--muted);overflow:hidden}
+  .bar i{display:block;height:100%;width:62%;background:var(--accent);border-radius:999px}
+  .big-ok{width:44px;height:44px;border-radius:50%;background:var(--selected);color:var(--signal);display:grid;place-items:center}
+  .big-ok svg{width:20px;height:20px;stroke-width:2.6}
+  .big-bad{width:44px;height:44px;border-radius:50%;background:var(--warn-bg);color:var(--warn);display:grid;place-items:center}
+  .big-bad svg{width:20px;height:20px}
+  .hl{font-size:17px;font-weight:500;letter-spacing:-.01em}
+  .sub{font-size:12.5px;color:var(--muted-foreground)}
+  .lnk{font-size:12.5px;color:var(--accent);display:inline-flex;align-items:center;gap:5px;font-weight:500}
+  .lnk svg{width:12px;height:12px}
+
+  /* product cards (05) */
+  .pcard{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .pname{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .pname b{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--foreground)}
+  .pname span{font-size:11.5px;color:var(--muted-foreground)}
+  .ub{align-self:flex-end;background:var(--muted);padding:8px 13px;border-radius:16px 16px 5px 16px;font-size:13.5px;max-width:92%}
+  .ab{font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
+  .ab .ava{width:24px;height:24px;border-radius:8px;flex:none}
+  .ab .ava svg{width:11px;height:11px}
+  .trow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:9px 10px;border-radius:14px;background:var(--surface);border:1px solid #e3e4db;font-size:13px}
+  .trow .nm{font-weight:600;line-height:1.2}
+  .trow .nm small{display:block;font-weight:400;color:var(--muted-foreground);font-size:11.5px}
+  .trow .r{text-align:right}
+  .trow.on{background:var(--selected);border-color:var(--selected-line)}
+  .up{color:var(--signal)}
+  .dn{color:var(--loss)}
+  .mini{font-size:11.5px;padding:4px 9px;border-radius:999px;border:1px solid #dcdcd4;background:var(--background);font-weight:500}
+  .chipw{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;font-size:11px;background:var(--warn-bg);color:var(--warn);font-weight:500}
+  .split{display:flex;height:8px;border-radius:999px;overflow:hidden;gap:3px}
+  .split i{display:block;background:var(--foreground)}
+  .split i + i{background:#d0873a}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:56px;padding-top:6px}
+  .bars i{flex:1;background:var(--selected-line);border-radius:4px 4px 0 0}
+  .bars i:last-child{background:var(--accent)}
+  .nudge{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:var(--selected);border:1px solid var(--selected-line);font-size:12.5px;color:var(--signal)}
+  .qchips{display:flex;gap:6px;flex-wrap:wrap}
+  .qchips span{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+  .check{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .check i{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--wire);background:var(--surface)}
+  .warnbox{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:14px;background:var(--warn-bg);color:var(--warn);font-size:12.5px}
+  .warnbox div{display:flex;align-items:center;gap:8px}
+  .warnbox svg{width:13px;height:13px}
+  .why{font-size:12px;color:var(--muted-foreground);border-top:1px dashed var(--line);padding-top:10px;line-height:1.45}
+
+  /* placement (07) */
+  .opt{display:flex;flex-direction:column;gap:12px}
+  .opt h5{margin:0;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .rec{font-size:10.5px;font-weight:600;color:var(--signal);background:var(--selected);border:1px solid var(--selected-line);padding:2px 8px;border-radius:999px;letter-spacing:.02em}
+  .opt p{font-size:12.5px;color:var(--muted-foreground);line-height:1.45}
+  .sketch{border:1px solid var(--line);border-radius:14px;background:var(--background);overflow:hidden;height:200px;position:relative}
+  .sk-top{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+  .sk-top .lg{width:18px;height:18px;border-radius:6px;background:var(--cta)}
+  .sk-top span{font-size:10.5px;color:var(--muted-foreground);padding:3px 7px;border-radius:6px}
+  .sk-top span.on{background:var(--muted);color:var(--foreground);font-weight:600}
+  .sk-top .wl{margin-left:auto;width:42px;height:16px;border-radius:999px;background:var(--selected)}
+  .sk-body{padding:14px;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;height:calc(100% - 40px)}
+  .sk-in{width:78%;height:28px;border-radius:12px;background:var(--surface);box-shadow:0 0 0 1px rgba(202,204,197,.8);display:flex;align-items:center;padding:0 10px;font-size:10.5px;color:var(--faint)}
+  .sk-line{height:7px;border-radius:4px;background:var(--muted)}
+  .sk-card{width:46%;height:90px;border-radius:12px;background:var(--shell);border:1px solid var(--line)}
+  .sk-dim{position:absolute;inset:40px 0 0;background:rgba(37,38,32,.25)}
+  .sk-pal{position:absolute;left:12%;right:12%;top:62px;background:var(--background);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:10px;display:flex;flex-direction:column;gap:7px}
+  .sk-pal .sk-in{width:100%}
+  .sk-ctx{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 7px;border-radius:999px;background:var(--selected);color:var(--signal);font-weight:600;margin-right:6px}
+  .sk-drawer{position:absolute;left:0;top:40px;bottom:0;width:52%;background:var(--surface);border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:6px;font-size:10.5px}
+  .sk-drawer b{font-size:9.5px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+  .sk-drawer span{padding:5px 7px;border-radius:7px;color:var(--foreground)}
+  .sk-drawer span.on{background:var(--muted)}
+
+  /* phone */
+  .phone{width:300px;height:600px;border-radius:42px;border:9px solid #1f211b;background:var(--background);overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 30px 60px -30px rgba(0,0,0,.35)}
+  .ph-top{display:flex;align-items:center;gap:8px;padding:30px 14px 10px;border-bottom:1px solid var(--line)}
+  .ph-top .logo{width:28px;height:28px;border-radius:9px}
+  .ph-top .logo svg{width:13px;height:13px}
+  .ph-top b{font-size:14px}
+  .ph-top .wallet{padding:5px 9px 5px 6px;font-size:11px}
+  .ph-top .wallet i{width:14px;height:14px}
+  .ph-thread{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+  .ph-thread .ub{font-size:13px}
+  .ph-thread .w{border-radius:22px;padding:6px}
+  .ph-thread .pane{border-radius:16px;padding:10px 11px}
+  .ph-thread .amt .v{font-size:24px}
+  .ph-thread .token{font-size:12px;padding:3px 8px 3px 3px}
+  .ph-thread .token .ic{width:18px;height:18px}
+  .ph-thread .cta{height:44px;font-size:13px;border-radius:16px}
+  .ph-thread .flip{width:28px;height:28px;margin:-14px auto;border-radius:10px}
+  .ph-comp{margin:0 10px 18px;border-radius:20px;background:var(--surface);box-shadow:0 0 0 1px rgba(202,204,197,.7);padding:7px 7px 7px 14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--faint)}
+  .ph-comp > span:first-child{flex:1}
+  .ph-comp .send{width:30px;height:30px}
+
+  /* questions */
+  .qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .qbox{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:16px 18px}
+  .qbox h3{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+  .qbox ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.45}
+  .qbox ol li::marker{color:var(--faint)}
+  .qbox .must{font-size:10.5px;font-weight:600;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:999px;margin-left:4px;vertical-align:1px}
+
+  @media (max-width:640px){
+    .board{padding:20px 16px 72px}
+    .board-head h1{font-size:19px}
+    .canvas{padding:16px}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="r" viewBox="0 0 24 24"><path d="M8 19V11a5 5 0 0 1 5-5h3"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></symbol>
+  <symbol id="edit" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="out" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="flip" viewBox="0 0 24 24"><path d="M8 4v16m0 0-3-3m3 3 3-3M16 20V4m0 0-3 3m3-3 3 3"/></symbol>
+  <symbol id="warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3.5M4 4v4h4M4 13a8 8 0 0 0 14.9 3.5M20 20v-4h-4"/></symbol>
+  <symbol id="cmd" viewBox="0 0 24 24"><path d="M9 6v12M15 6v12M6 9h12M6 15h12"/></symbol>
+</svg>
+
+<div class="board">
+  <header class="board-head">
+    <div>
+      <h1>Route Chat wireframe</h1>
+      <p>One input for every Route product. Ask it to do something and it hands you the right Route widget, prefilled. Ask it something and it gives you a short, sourced rundown. Nothing moves until you sign.</p>
+    </div>
+    <nav class="board-nav">
+      <a href="#flow">00 flow</a>
+      <a href="#s1">01 start</a>
+      <a href="#s2">02 buy</a>
+      <a href="#s3">03 sign</a>
+      <a href="#s4">04 research</a>
+      <a href="#s5">05 products</a>
+      <a href="#s6">06 edge cases</a>
+      <a href="#s7">07 placement</a>
+      <a href="#q">open questions</a>
+    </nav>
+  </header>
+
+  <!-- ================= 00 FLOW ================= -->
+  <section class="screen" id="flow">
+    <div class="screen-label"><b>00 · How it works</b><span>four rules, one loop</span></div>
+    <div class="principles">
+      <div><b>Chat prepares, wallet signs</b><span>The agent never moves funds. It builds the transaction, you review and sign it.</span></div>
+      <div><b>Widgets, not walls of text</b><span>Actions come back as the existing Route cards, prefilled and editable. Nothing new to learn.</span></div>
+      <div><b>Show the guess</b><span>Every assumption ("7k = $7,000", "pay with USDG") is a chip you can tap to change.</span></div>
+      <div><b>Every answer ends in a next step</b><span>Research ends with Buy / Watch. A receipt ends with follow-ups. The loop keeps going.</span></div>
+    </div>
+    <div class="flow">
+      <svg viewBox="0 0 1180 340" role="img" aria-label="Flow: entry points lead to Ask Route, the agent reads intent, then either a prefilled widget to review, sign and receipt, or a sourced rundown that leads to the same widget. Unclear prompts get one question first.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#72736b"/></marker>
+        </defs>
+        <g font-size="13" fill="#252620">
+          <!-- entry -->
+          <rect x="0" y="40" width="170" height="220" rx="14" fill="#fcfcf9" stroke="#dededa"/>
+          <text x="16" y="66" font-size="11" font-weight="600" fill="#567b51" letter-spacing=".08em">ENTRY</text>
+          <rect x="14" y="80" width="142" height="44" rx="10" fill="#f7f7f2" stroke="#dededa"/><text x="28" y="107">Chat tab in nav</text>
+          <rect x="14" y="134" width="142" height="44" rx="10" fill="#f7f7f2" stroke="#dededa"/><text x="28" y="161">⌘K on any page</text>
+          <rect x="14" y="188" width="142" height="44" rx="10" fill="#f7f7f2" stroke="#dededa"/><text x="28" y="215">"Ask" on a token</text>
+
+          <!-- ask + intent -->
+          <path d="M170 150H206" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="210" y="122" width="128" height="56" rx="14" fill="#272b21"/><text x="274" y="155" text-anchor="middle" fill="#f7f7f2" font-weight="500">Ask Route</text>
+          <path d="M338 150H376" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="380" y="122" width="128" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="444" y="147" text-anchor="middle">Agent reads</text><text x="444" y="165" text-anchor="middle">intent</text>
+          <!-- clarify loop -->
+          <path d="M424 178V236" stroke="#b6bdb0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#ah)"/>
+          <path d="M464 236V182" stroke="#b6bdb0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#ah)"/>
+          <rect x="370" y="240" width="148" height="50" rx="12" fill="#f5ecd9" stroke="#e6d3ad"/><text x="444" y="261" text-anchor="middle" fill="#a6702c" font-size="12.5">Unclear? Ask one</text><text x="444" y="278" text-anchor="middle" fill="#a6702c" font-size="12.5">question, max</text>
+
+          <!-- branch -->
+          <path d="M508 150H536V72H566" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <path d="M536 150V222H566" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <text x="572" y="30" font-size="11" font-weight="600" fill="#567b51" letter-spacing=".08em">DO</text>
+          <text x="572" y="180" font-size="11" font-weight="600" fill="#567b51" letter-spacing=".08em">LEARN</text>
+
+          <!-- do lane -->
+          <rect x="570" y="44" width="160" height="56" rx="14" fill="#eff4ec" stroke="#b8cfae"/><text x="650" y="69" text-anchor="middle">Prefilled widget</text><text x="650" y="87" text-anchor="middle" font-size="11.5" fill="#72736b">swap, limit, earn...</text>
+          <path d="M730 72H764" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="768" y="44" width="110" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="823" y="77" text-anchor="middle">Review</text>
+          <path d="M878 72H912" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="916" y="44" width="110" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="971" y="69" text-anchor="middle">Sign in</text><text x="971" y="87" text-anchor="middle">wallet</text>
+          <path d="M1026 72H1060" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="1064" y="44" width="112" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="1120" y="69" text-anchor="middle">Receipt +</text><text x="1120" y="87" text-anchor="middle">next steps</text>
+
+          <!-- learn lane -->
+          <rect x="570" y="194" width="160" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="650" y="219" text-anchor="middle">Rundown</text><text x="650" y="237" text-anchor="middle" font-size="11.5" fill="#72736b">short, with sources</text>
+          <path d="M730 222H764" stroke="#72736b" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <rect x="768" y="194" width="130" height="56" rx="14" fill="#fcfcf9" stroke="#dededa"/><text x="833" y="219" text-anchor="middle">Buy / Watch /</text><text x="833" y="237" text-anchor="middle">Compare</text>
+          <path d="M833 194V146H650V104" stroke="#567b51" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+          <text x="690" y="140" font-size="11.5" fill="#567b51">Buy opens the widget</text>
+
+          <!-- loop back -->
+          <path d="M1120 100V316H274V182" stroke="#b6bdb0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#ah)"/>
+          <text x="1110" y="306" text-anchor="end" font-size="11.5" fill="#72736b">follow-up chips feed the next ask</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= 01 START ================= -->
+  <section class="screen" id="s1">
+    <div class="screen-label"><b>01 · Start</b><span>empty chat. The input is the page.</span></div>
+    <div class="fit"><div class="app">
+      <div class="topbar">
+        <div class="logo"><svg class="i"><use href="#r"/></svg></div>
+        <nav class="nav rel"><i class="mk" style="left:-4px;top:-14px">1</i><a class="on" href="#">Chat<span class="new">new</span></a><a href="#">Swap</a><a href="#">Screener</a><a href="#">Earn</a><a href="#">Yield</a><a href="#">Analytics</a></nav>
+        <span class="wallet off">Connect wallet</span>
+      </div>
+      <div class="stage" style="height:600px">
+        <div class="col side"><div class="side-stack rel"><i class="mk" style="right:-26px;top:8px">4</i><span class="ghost-btn"><svg class="i"><use href="#plus"/></svg>New</span><span class="ghost-btn"><svg class="i"><use href="#hist"/></svg>History</span></div></div>
+        <div class="col">
+          <div class="chat" style="justify-content:center;align-items:center;gap:22px;padding:0 60px">
+            <div class="ava" style="width:44px;height:44px;border-radius:14px"><svg class="i" style="width:20px;height:20px"><use href="#r"/></svg></div>
+            <div style="font-size:30px;font-weight:500;letter-spacing:-.02em">What do you want to do?</div>
+            <div class="composer rel" style="margin:0;width:100%"><i class="mk" style="left:-28px;top:20px">2</i><span class="ph">Buy, swap, research or earn. Just ask.</span><span class="send off"><svg class="i"><use href="#up"/></svg></span></div>
+            <div class="follow rel" style="justify-content:center"><i class="mk" style="left:-28px;top:6px">3</i><span>Buy $500 of ROUTE</span><span>Who's behind PONS?</span><span>Put my idle USDG to work</span><span>What's trending today?</span></div>
+            <div class="tiny" style="margin-top:30px">Route Chat prepares transactions. You review and sign every one.</div>
+          </div>
+        </div>
+        <div class="col side"></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><i>1</i><b>Chat is a tab, not a takeover.</b> Sits first in the existing nav. Swap and the rest stay one click away.</li>
+      <li><i>2</i><b>One input, nothing else.</b> No model picker, no settings, no onboarding. Works before a wallet is connected.</li>
+      <li><i>3</i><b>Four starters</b>, one per job: buy, research, earn, discover. Once connected they adapt to the wallet ("You have 5,480 idle USDG").</li>
+      <li><i>4</i><b>History stays out of the way.</b> One button opens past chats in a drawer (see 07).</li>
+    </ul>
+  </section>
+
+  <!-- ================= 02 BUY ================= -->
+  <section class="screen" id="s2">
+    <div class="screen-label"><b>02 · "buy me 7k of $ROUTE"</b><span>intent becomes the swap card, prefilled <span class="sample">sample numbers</span></span></div>
+    <div class="fit"><div class="app">
+      <div class="topbar">
+        <div class="logo"><svg class="i"><use href="#r"/></svg></div>
+        <nav class="nav"><a class="on" href="#">Chat</a><a href="#">Swap</a><a href="#">Screener</a><a href="#">Earn</a><a href="#">Yield</a><a href="#">Analytics</a></nav>
+        <span class="wallet"><i></i>0x8f4c…3a1c</span>
+      </div>
+      <div class="stage" style="height:760px">
+        <div class="col side"><div class="side-stack"><span class="ghost-btn"><svg class="i"><use href="#plus"/></svg>New</span><span class="ghost-btn"><svg class="i"><use href="#hist"/></svg>History</span></div></div>
+        <div class="col">
+          <div class="chat">
+            <div class="thread">
+              <div class="msg-user">buy me 7k of $ROUTE</div>
+              <div class="msg-agent">
+                <div class="ava"><svg class="i"><use href="#r"/></svg></div>
+                <div class="agent-body">
+                  <p>Here's the best route for $7,000 into ROUTE.</p>
+                  <div class="assume rel"><i class="mk" style="left:-58px;top:4px">1</i>
+                    <span class="as"><em>7k as</em> $7,000<svg class="i"><use href="#edit"/></svg></span>
+                    <span class="as"><em>pay with</em> USDG<svg class="i"><use href="#edit"/></svg></span>
+                  </div>
+                  <div class="w rel"><i class="mk" style="left:-58px;top:70px">2</i>
+                    <div class="w-top"><span class="pill">Instant<svg class="i chev" style="width:11px;height:11px"><use href="#chev"/></svg></span><span class="pill mut">0.5% slippage</span></div>
+                    <div class="pane">
+                      <label>you pay</label>
+                      <div class="amt"><span class="v num">7,000.00</span><span class="token"><span class="ic usdg">G</span>USDG<svg class="i chev"><use href="#chev"/></svg></span></div>
+                      <div class="row"><span class="num">$7,000.00</span><span class="num">balance 12,480.52</span></div>
+                    </div>
+                    <div class="flip"><svg class="i"><use href="#flip"/></svg></div>
+                    <div class="pane get">
+                      <label>you get</label>
+                      <div class="amt"><span class="v num">3,333,180</span><span class="token"><span class="ic route"><svg class="i"><use href="#r"/></svg></span>ROUTE<svg class="i chev"><use href="#chev"/></svg></span></div>
+                      <div class="row"><span class="num">$6,970.60</span><span></span></div>
+                    </div>
+                    <div class="details num">
+                      <div><span>Rate</span><b>1 ROUTE = $0.0021</b></div>
+                      <div><span>Route</span><b>USDG → WETH → ROUTE</b></div>
+                      <div><span>Price impact</span><b>0.42%</b></div>
+                    </div>
+                    <div class="cta rel"><i class="mk" style="left:-58px;top:16px">3</i>Review swap<svg class="i"><use href="#out"/></svg></div>
+                    <div class="tiny" style="padding:4px 8px 2px"><span class="ring"></span>Quote refreshes in 12s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="composer rel"><i class="mk" style="left:-28px;top:20px">4</i><span class="ph">Change anything, or ask a follow-up</span><span class="send off"><svg class="i"><use href="#up"/></svg></span></div>
+          </div>
+        </div>
+        <div class="col side"></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><i>1</i><b>Assumptions are chips.</b> "7k" reads as dollars, paid from the largest stable balance. Tap to switch to 7,000 ROUTE or pay with ETH.</li>
+      <li><i>2</i><b>It's the real swap card.</b> Same component as route.fun, fully editable in place. Keeps one source of truth for the dev team.</li>
+      <li><i>3</i><b>One clear button.</b> Review, not Buy. Nothing is sent from chat without the review step.</li>
+      <li><i>4</i><b>Typing edits the widget.</b> "make it 5k" or "use ETH" updates the same card instead of stacking a new one.</li>
+    </ul>
+  </section>
+
+  <!-- ================= 03 SIGN ================= -->
+  <section class="screen" id="s3">
+    <div class="screen-label"><b>03 · Review → sign → done</b><span>the widget changes state in place, the thread doesn't grow</span></div>
+    <div class="canvas c5">
+      <div class="state">
+        <div class="tag"><b>a</b>Review</div>
+        <div class="card">
+          <h4>Review swap<small>Robinhood Chain</small></h4>
+          <div class="kv num">
+            <div><span>You pay</span><b>7,000 USDG</b></div>
+            <div><span>You get at least</span><b>3,316,514 ROUTE</b></div>
+            <div><span>Route</span><b>USDG → WETH → ROUTE</b></div>
+            <div><span>Price impact</span><b>0.42%</b></div>
+            <div><span>Network fee</span><b>&lt; $0.01</b></div>
+          </div>
+          <div class="cta">Confirm in wallet<svg class="i"><use href="#out"/></svg></div>
+          <div class="tiny" style="justify-content:center">Back to edit</div>
+        </div>
+      </div>
+      <div class="state">
+        <div class="tag"><b>b</b>Wallet</div>
+        <div class="card">
+          <h4>Confirm in your wallet</h4>
+          <div class="wsteps">
+            <div><span class="d ok"><svg class="i"><use href="#check"/></svg></span>Approve USDG</div>
+            <div><span class="d run"></span>Swap to ROUTE</div>
+          </div>
+          <div class="sub">One signature if your wallet supports batching. Two otherwise.</div>
+          <div class="cta dis">Waiting for signature</div>
+        </div>
+      </div>
+      <div class="state">
+        <div class="tag"><b>c</b>Pending</div>
+        <div class="card">
+          <h4>Swapping<small>~2s</small></h4>
+          <div class="bar"><i></i></div>
+          <div class="sub num">7,000 USDG → ~3,333,180 ROUTE</div>
+          <span class="lnk">View on explorer<svg class="i"><use href="#out"/></svg></span>
+          <div class="sub">You can keep chatting. The card updates when it lands.</div>
+        </div>
+      </div>
+      <div class="state">
+        <div class="tag go"><b>d</b>Done</div>
+        <div class="card">
+          <div class="big-ok"><svg class="i"><use href="#check"/></svg></div>
+          <div><div class="hl num">Bought 3,333,180 ROUTE</div><div class="sub num">for 7,000 USDG · avg $0.0021</div></div>
+          <span class="lnk">View transaction<svg class="i"><use href="#out"/></svg></span>
+          <div class="qchips"><span>Set a take-profit</span><span>Who's behind ROUTE?</span><span>Buy more</span></div>
+        </div>
+      </div>
+      <div class="state">
+        <div class="tag"><b>e</b>Failed</div>
+        <div class="card">
+          <div class="big-bad"><svg class="i"><use href="#warn"/></svg></div>
+          <div><div class="hl">Price moved</div><div class="sub">It went past your 0.5% slippage. Nothing was spent.</div></div>
+          <div class="cta"><span>Refresh quote</span><svg class="i"><use href="#refresh"/></svg></div>
+          <div class="tiny" style="justify-content:center">or raise slippage to 1%</div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><i>a</i><b>Review is a summary, not a new screen.</b> Minimum received, route and impact. Same fields as the swap page.</li>
+      <li><i>b</i><b>Wallet step is honest about signatures.</b> Uses Route's existing approve + swap batching where supported.</li>
+      <li><i>d</i><b>The receipt keeps the loop going.</b> Follow-up chips turn a one-off buy into the next ask.</li>
+      <li><i>e</i><b>Failures say what happened and that no funds moved</b>, then offer the one fix.</li>
+    </ul>
+  </section>
+
+  <!-- ================= 04 RESEARCH ================= -->
+  <section class="screen" id="s4">
+    <div class="screen-label"><b>04 · "who's behind $ROUTE"</b><span>a rundown, not an essay <span class="sample">facts from docs.route.fun + analytics, Oct 2026</span></span></div>
+    <div class="fit"><div class="app">
+      <div class="topbar">
+        <div class="logo"><svg class="i"><use href="#r"/></svg></div>
+        <nav class="nav"><a class="on" href="#">Chat</a><a href="#">Swap</a><a href="#">Screener</a><a href="#">Earn</a><a href="#">Yield</a><a href="#">Analytics</a></nav>
+        <span class="wallet"><i></i>0x8f4c…3a1c</span>
+      </div>
+      <div class="stage" style="height:820px">
+        <div class="col side"><div class="side-stack"><span class="ghost-btn"><svg class="i"><use href="#plus"/></svg>New</span><span class="ghost-btn"><svg class="i"><use href="#hist"/></svg>History</span></div></div>
+        <div class="col">
+          <div class="chat">
+            <div class="thread">
+              <div class="msg-user">whose behind $ROUTE</div>
+              <div class="msg-agent">
+                <div class="ava"><svg class="i"><use href="#r"/></svg></div>
+                <div class="agent-body">
+                  <div class="rcard">
+                    <div class="rhead">
+                      <span class="ic route"><svg class="i"><use href="#r"/></svg></span>
+                      <div><b>Route</b><small>ROUTE · Robinhood Chain · 0x4A72…E8f8</small></div>
+                      <div class="px num"><b>$0.0021</b><small>mcap $1.8M</small></div>
+                    </div>
+                    <div class="tldr rel"><i class="mk" style="left:-58px;top:16px">1</i>An anonymous team. Nobody is named publicly; the treasury is a 2-of-3 Safe and 60% of protocol revenue buys back ROUTE.</div>
+                    <div class="facts rel"><i class="mk" style="left:-58px;top:12px">2</i>
+                      <div class="fact"><span class="k">Team</span><span>Not publicly named</span><span class="src">docs</span></div>
+                      <div class="fact"><span class="k">Control</span><span>Treasury is a 2-of-3 multisig</span><span class="src">docs</span></div>
+                      <div class="fact num"><span class="k">Supply</span><span>85.9% circulating · 13.6% locked</span><span class="src">analytics</span></div>
+                      <div class="fact num"><span class="k">Revenue</span><span>$271,973 all time · 60% to buybacks</span><span class="src">analytics</span></div>
+                      <div class="fact rel"><i class="mk" style="left:-58px;top:10px">3</i><span class="k">Contracts</span><span class="flag"><svg class="i"><use href="#warn"/></svg>Verified, no third-party audit</span><span class="src">docs</span></div>
+                      <div class="fact"><span class="k">Socials</span><span>@routedotfun</span><span class="src">x.com</span></div>
+                    </div>
+                    <div class="ractions rel"><i class="mk" style="left:-58px;top:20px">4</i>
+                      <span class="rbtn pri">Buy ROUTE</span>
+                      <span class="rbtn"><svg class="i"><use href="#star"/></svg>Watchlist</span>
+                      <span class="rbtn">Open in Screener<svg class="i"><use href="#out"/></svg></span>
+                    </div>
+                  </div>
+                  <div class="follow"><span>Who are the top holders?</span><span>Compare with PONS</span><span>Show buyback history</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="composer"><span class="ph">Ask a follow-up</span><span class="send off"><svg class="i"><use href="#up"/></svg></span></div>
+          </div>
+        </div>
+        <div class="col side"></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><i>1</i><b>Answer first, one sentence.</b> Typos and slang are fine ("whose behind"). The card answers the actual question before anything else.</li>
+      <li><i>2</i><b>Same fact rows for every token</b> (team, control, supply, revenue, contracts, socials), each with its source. Easy to scan, easy to compare.</li>
+      <li><i>3</i><b>Risk flags in amber, same spot every time.</b> If something is unknown it says "not disclosed", never a guess.</li>
+      <li><i>4</i><b>Research ends in action.</b> Buy opens the swap card from 02, prefilled with this token.</li>
+    </ul>
+  </section>
+
+  <!-- ================= 05 PRODUCTS ================= -->
+  <section class="screen" id="s5">
+    <div class="screen-label"><b>05 · Every Route product, same pattern</b><span>prompt in, matching card out <span class="sample">sample numbers</span></span></div>
+    <div class="canvas c3">
+
+      <div class="pcard">
+        <div class="pname"><b>Limit order</b><span>Swap → limit</span></div>
+        <div class="ub">sell half my ROUTE if it hits $0.003</div>
+        <div class="card">
+          <h4>Limit sell<small>expires in 7d ▾</small></h4>
+          <div class="kv num">
+            <div><span>Sell</span><b>1,666,590 ROUTE <span class="mini">50%</span></b></div>
+            <div><span>When price hits</span><b>$0.0030 <span class="up">+43%</span></b></div>
+            <div><span>You get about</span><b>4,999.77 USDG</b></div>
+          </div>
+          <div class="cta">Place order<svg class="i"><use href="#out"/></svg></div>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Multi-swap</b><span>Swap → multi-swap</span></div>
+        <div class="ub">split 1 ETH into ROUTE and PONS</div>
+        <div class="card">
+          <h4>Multi-swap<small>you pay 1 ETH</small></h4>
+          <div class="split"><i style="width:50%"></i><i style="width:50%"></i></div>
+          <div class="trow num"><span class="ic route"><svg class="i"><use href="#r"/></svg></span><span class="nm">ROUTE<small>50%</small></span><span class="r">580,710</span><span></span></div>
+          <div class="trow num"><span class="ic pons">P</span><span class="nm">PONS<small>50%</small></span><span class="r">3,531</span><span></span></div>
+          <div class="cta">Review multi-swap<svg class="i"><use href="#out"/></svg></div>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Earn</b><span>Earn → vaults</span></div>
+        <div class="ub">put my idle USDG to work</div>
+        <div class="card">
+          <h4>5,480 USDG idle<small>pick a vault</small></h4>
+          <div class="trow on num"><span class="ic usdg">G</span><span class="nm">USDG Prime<small>Steakhouse · lowest risk</small></span><span class="r"><b>5.8%</b></span><span></span></div>
+          <div class="trow num"><span class="ic usdg">G</span><span class="nm">High Yield<small>variable</small></span><span class="r">8.1%</span><span></span></div>
+          <div class="trow num"><span class="ic usdg">G</span><span class="nm">Turbo <span class="chipw">leverage</span><small>higher risk</small></span><span class="r">12.4%</span><span></span></div>
+          <div class="cta">Deposit 5,480 USDG<svg class="i"><use href="#out"/></svg></div>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Screener</b><span>Screener → trending</span></div>
+        <div class="ub">what's trending on Robinhood Chain?</div>
+        <div class="card">
+          <h4>Trending · 24h<small>by volume</small></h4>
+          <div class="trow num"><span class="ic pons">P</span><span class="nm">PONS<small>$0.3437</small></span><span class="r dn">-2.42%</span><span class="mini">Buy</span></div>
+          <div class="trow num"><span class="ic ign">I</span><span class="nm">IGNITION<small>$0.0129</small></span><span class="r up">+81.5%</span><span class="mini">Buy</span></div>
+          <div class="trow num"><span class="ic cat">C</span><span class="nm">CASHCAT<small>$0.1133</small></span><span class="r dn">-2.73%</span><span class="mini">Buy</span></div>
+          <div class="trow num"><span class="ic hook">H</span><span class="nm">HOOKR<small>$0.0272</small></span><span class="r up">+11.68%</span><span class="mini">Buy</span></div>
+          <span class="lnk">Open full screener<svg class="i"><use href="#out"/></svg></span>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Portfolio</b><span>Wallet</span></div>
+        <div class="ub">how's my wallet doing?</div>
+        <div class="card">
+          <div><div class="sub">Total value</div><div class="hl num" style="font-size:26px">$14,206.40 <span class="up" style="font-size:13px">+3.1% 24h</span></div></div>
+          <div class="trow num"><span class="ic route"><svg class="i"><use href="#r"/></svg></span><span class="nm">ROUTE<small>3.33M</small></span><span class="r">$6,999</span><span></span></div>
+          <div class="trow num"><span class="ic usdg">G</span><span class="nm">USDG<small>5,480</small></span><span class="r">$5,480</span><span></span></div>
+          <div class="trow num"><span class="ic eth">E</span><span class="nm">ETH<small>0.71</small></span><span class="r">$1,727</span><span></span></div>
+          <div class="nudge">5,480 USDG is sitting idle<span class="mini">Earn 5.8%</span></div>
+        </div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Analytics</b><span>Analytics</span></div>
+        <div class="ub">how much has Route bought back?</div>
+        <div class="card">
+          <div><div class="sub">ROUTE bought back, all time</div><div class="hl num" style="font-size:26px">$198,079.70</div><div class="sub num">99.93M ROUTE · 60% of revenue since Sep 27</div></div>
+          <div class="bars"><i style="height:30%"></i><i style="height:42%"></i><i style="height:38%"></i><i style="height:55%"></i><i style="height:61%"></i><i style="height:72%"></i><i style="height:100%"></i></div>
+          <span class="lnk">Open analytics<svg class="i"><use href="#out"/></svg></span>
+        </div>
+      </div>
+
+    </div>
+    <ul class="notes">
+      <li><b>Every card is a shrunk version of an existing Route page.</b> Chat is a new front door, not a new product. Each card links out to its full page.</li>
+      <li><b>Card types to design:</b> swap, limit, multi-swap, vault picker, token list, portfolio, stat. Seven components cover every current product.</li>
+      <li><b>Not shown:</b> pools/LP and borrow in Earn. Same pattern, confirm scope with the client first.</li>
+    </ul>
+  </section>
+
+  <!-- ================= 06 EDGE CASES ================= -->
+  <section class="screen" id="s6">
+    <div class="screen-label"><b>06 · When it's not straightforward</b><span>the cases that decide whether people trust it</span></div>
+    <div class="canvas c3">
+
+      <div class="pcard">
+        <div class="pname"><b>Same ticker, two tokens</b></div>
+        <div class="ub">buy 500 of SI</div>
+        <div class="ab"><span class="ava"><svg class="i"><use href="#r"/></svg></span><span>Two tokens use SI. Which one?</span></div>
+        <div class="card">
+          <div class="trow on num"><span class="ic si1">S</span><span class="nm">Sword Inu<small>Robinhood Chain · $16.7M vol</small></span><span class="r"></span><span class="mini">Pick</span></div>
+          <div class="trow num"><span class="ic si2">S</span><span class="nm">Super Inu<small>Solana · $15.4M mcap</small></span><span class="r"></span><span class="mini">Pick</span></div>
+        </div>
+        <div class="why">Real case from today's screener. Never guess between tokens: show chain and volume so the right one is obvious.</div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>No amount</b></div>
+        <div class="ub">buy ROUTE</div>
+        <div class="w" style="max-width:none">
+          <div class="pane">
+            <label>you pay</label>
+            <div class="amt"><span class="v ph focus">0.00</span><span class="token"><span class="ic usdg">G</span>USDG</span></div>
+            <div class="qchips"><span>$100</span><span>$500</span><span>$1,000</span><span>Max</span></div>
+          </div>
+        </div>
+        <div class="why">Don't ask "how much?". Show the card with the amount focused and quick picks. One less round trip.</div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>No wallet yet</b></div>
+        <div class="ub">buy me 7k of $ROUTE</div>
+        <div class="w" style="max-width:none">
+          <div class="pane">
+            <label>you pay</label>
+            <div class="amt"><span class="v num">7,000.00</span><span class="token"><span class="ic usdg">G</span>USDG</span></div>
+          </div>
+          <div class="cta light">Connect wallet to review<svg class="i"><use href="#out"/></svg></div>
+        </div>
+        <div class="why">Chat and research work logged out. The wallet is asked for at the moment it's needed, not upfront.</div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Not enough balance</b></div>
+        <div class="ub">buy 20k of ROUTE</div>
+        <div class="ab"><span class="ava"><svg class="i"><use href="#r"/></svg></span><span class="num">You have 12,480 USDG and 0.71 ETH ($1,727).</span></div>
+        <div class="card">
+          <div class="trow on"><span></span><span class="nm">Use all USDG<small class="num">12,480 USDG → ROUTE</small></span><span></span><span class="mini">Pick</span></div>
+          <div class="trow"><span></span><span class="nm">USDG + ETH<small class="num">$14,207 total, via multi-swap</small></span><span></span><span class="mini">Pick</span></div>
+        </div>
+        <div class="why">Offer the closest thing that works instead of a dead-end error.</div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Risky token</b></div>
+        <div class="ub">ape 2k into PAPER</div>
+        <div class="card">
+          <div class="warnbox">
+            <div><svg class="i"><use href="#warn"/></svg>Token is 4 hours old</div>
+            <div><svg class="i"><use href="#warn"/></svg>Price impact 8.4%</div>
+            <div><svg class="i"><use href="#warn"/></svg>Only 1 pool</div>
+          </div>
+          <div class="check"><i></i>I understand the risk</div>
+          <div class="cta dis">Review swap</div>
+        </div>
+        <div class="why">Same thresholds as the swap page. Above them, Review stays locked until the box is ticked.</div>
+      </div>
+
+      <div class="pcard">
+        <div class="pname"><b>Can't do that (yet)</b></div>
+        <div class="ub">bridge my ETH to Solana</div>
+        <div class="ab"><span class="ava"><svg class="i"><use href="#r"/></svg></span><span>Route doesn't bridge yet. Here's what I can do on Robinhood Chain:</span></div>
+        <div class="qchips"><span>Swap ETH to USDG</span><span>Put ETH in a pool</span><span>Show trending on Solana</span></div>
+        <div class="why">Say no in one line, then offer the nearest real action. Never pretend.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= 07 PLACEMENT ================= -->
+  <section class="screen" id="s7">
+    <div class="screen-label"><b>07 · Where chat lives</b><span>three ways in, plus history and mobile</span></div>
+    <div class="canvas c7">
+      <div class="opt">
+        <h5>A · Chat tab <span class="rec">recommended</span></h5>
+        <div class="sketch">
+          <div class="sk-top"><span class="lg"></span><span class="on">Chat</span><span>Swap</span><span>Screener</span><span>Earn</span><span class="wl"></span></div>
+          <div class="sk-body"><div class="sk-line" style="width:40%"></div><div class="sk-in">Ask Route...</div></div>
+        </div>
+        <p>Own page in the nav, first item. Low risk, easy to ship, easy to measure. Swap page stays as is.</p>
+      </div>
+      <div class="opt">
+        <h5>B · Chat is home</h5>
+        <div class="sketch">
+          <div class="sk-top"><span class="lg"></span><span>Swap</span><span>Screener</span><span>Earn</span><span class="wl"></span></div>
+          <div class="sk-body"><div class="sk-in">Ask Route...</div><div class="sk-card" style="height:70px"></div></div>
+        </div>
+        <p>route.fun opens on chat with the swap card under it. Bold. Only worth it once chat usage beats the swap page.</p>
+      </div>
+      <div class="opt">
+        <h5>C · Ask from anywhere <span class="rec">recommended</span></h5>
+        <div class="sketch">
+          <div class="sk-top"><span class="lg"></span><span>Swap</span><span class="on">Screener</span><span>Earn</span><span class="wl"></span></div>
+          <div class="sk-body" style="align-items:stretch"><div class="sk-line" style="width:90%"></div><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:85%"></div></div>
+          <div class="sk-dim"></div>
+          <div class="sk-pal"><div class="sk-in"><span class="sk-ctx">PONS</span>who's behind this?</div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:50%"></div></div>
+        </div>
+        <p>⌘K (or a floating button on mobile) opens chat over any page, already knowing what you're looking at.</p>
+      </div>
+      <div class="opt">
+        <h5>History</h5>
+        <div class="sketch">
+          <div class="sk-top"><span class="lg"></span><span class="on">Chat</span><span>Swap</span><span class="wl"></span></div>
+          <div class="sk-drawer"><b>Today</b><span class="on">Buy 7k ROUTE</span><span>Who's behind ROUTE</span><b>Yesterday</b><span>Idle USDG to Earn</span></div>
+        </div>
+        <p>A drawer, titled by what happened ("Buy 7k ROUTE"), saved per wallet. Hidden until asked for.</p>
+      </div>
+      <div class="opt tall">
+        <h5>Mobile</h5>
+        <div class="phone">
+          <div class="ph-top"><div class="logo"><svg class="i"><use href="#r"/></svg></div><b>Chat</b><span class="wallet" style="margin-left:auto"><i></i>0x8f…3a1c</span></div>
+          <div class="ph-thread">
+            <div class="ub">buy me 7k of $ROUTE</div>
+            <div class="assume"><span class="as" style="font-size:11px;padding:4px 9px"><em>7k as</em> $7,000</span><span class="as" style="font-size:11px;padding:4px 9px"><em>pay</em> USDG</span></div>
+            <div class="w">
+              <div class="pane"><label style="font-size:11px">you pay</label><div class="amt"><span class="v num">7,000</span><span class="token"><span class="ic usdg">G</span>USDG</span></div></div>
+              <div class="flip"><svg class="i"><use href="#flip"/></svg></div>
+              <div class="pane get"><label style="font-size:11px">you get</label><div class="amt"><span class="v num">3.33M</span><span class="token"><span class="ic route"><svg class="i"><use href="#r"/></svg></span>ROUTE</span></div></div>
+              <div class="cta">Review swap<svg class="i"><use href="#out"/></svg></div>
+            </div>
+          </div>
+          <div class="ph-comp"><span>Ask a follow-up</span><span class="send off"><svg class="i"><use href="#up"/></svg></span></div>
+        </div>
+        <p style="text-align:center">Chat is naturally mobile-first. Widgets go full width, the composer sits above the keyboard.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= QUESTIONS ================= -->
+  <section class="screen" id="q">
+    <div class="screen-label"><b>Open questions for Route</b><span>answers change the design</span></div>
+    <div class="qgrid">
+      <div class="qbox">
+        <h3>The agent</h3>
+        <ol>
+          <li>Does the agent ever act without a signature (agent wallet, session keys, DCA, auto-trading), or is it always "prepare, you sign"?<span class="must">must ask</span></li>
+          <li>Which actions are in v1: swap, limit, multi-swap, Earn deposit/withdraw, LP, borrow? Anything outside Route like transfers or bridging?<span class="must">must ask</span></li>
+          <li>Who builds the agent and its intent parsing? Are we designing only the UI, or also response formats and copy?</li>
+          <li>Which chains: Robinhood Chain only, or Arc / Solana / Base like the screener?</li>
+        </ol>
+      </div>
+      <div class="qbox">
+        <h3>Research</h3>
+        <ol>
+          <li>What data does it pull from: onchain, Route's own screener/analytics, X, the open web? Can it cite sources?<span class="must">must ask</span></li>
+          <li>Policy on "who's behind X": is naming people OK, and what does it say when a team is anon?</li>
+          <li>Tokenized stocks (SPY, NVDA, TSLA): any legal limits on research or anything that reads as advice?</li>
+          <li>Fixed rundown template for tokens, or free-form answers?</li>
+        </ol>
+      </div>
+      <div class="qbox">
+        <h3>Product + brand</h3>
+        <ol>
+          <li>Where does it live: tab, home page, ⌘K overlay, or a separate app? Is mobile the priority?</li>
+          <li>Wallet required to chat? Is history saved, and per wallet?</li>
+          <li>Any gating: ROUTE holders only, usage limits, paid tier? (ties into "Vault Utility" on the roadmap)</li>
+          <li>Does the agent have a name and personality, or is it just "Route"? Tone: degen or neutral?</li>
+          <li>Light, dark or both? Deadline, and what fidelity do they need next?</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  function fit(){
+    document.querySelectorAll('.fit').forEach(function(w){
+      var app=w.firstElementChild, k=Math.min(1, w.clientWidth/1240);
+      app.style.transform='scale('+k+')';
+      w.style.height=(app.offsetHeight*k)+'px';
+    });
+  }
+  window.addEventListener('resize',fit); window.addEventListener('load',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  fit();
+</script>
+</body>
+</html>
